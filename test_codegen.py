@@ -8,6 +8,7 @@ from ledivilkutin_gravity_codegen import (
     PatternGrid,
     parse_config_row,
     parse_led_row,
+    parse_input,
     extract_coordinate_buckets,
     sort_coordinates,
 )
@@ -121,3 +122,19 @@ def test_sort_coordinates_rtl_up():
         Coordinate(1, 0),
         Coordinate(0, 0),
     ]
+
+
+def test_full_parsing_and_buckets(tmp_path):
+    test_file = tmp_path / "test_pattern.txt"
+    test_file.write_text("00 LTR DOWN SEED:NEW\n" "u 1 _\n" "_ d _\n")
+
+    config, grid = parse_input(test_file)
+    starts, ends, static = extract_coordinate_buckets(grid)
+
+    assert config.direction == "DOWN"
+    assert len(starts) == 1
+    assert len(ends) == 1
+    assert len(static) == 1
+    assert starts[0] == Coordinate(0, 0)  # 'u'
+    assert static[0] == Coordinate(1, 0)  # '1'
+    assert ends[0] == Coordinate(1, 1)  # 'd'

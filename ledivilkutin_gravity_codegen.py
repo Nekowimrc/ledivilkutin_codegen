@@ -123,6 +123,7 @@ class Config:
     animation_pattern: Optional[Literal["RANDOM", "LTR", "RTL"]]
     direction: Optional[Literal["UP", "DOWN"]]
     seed: Optional[int | Literal["NEW"]]
+    delay_ms: int
 
 
 def extract_coordinate_buckets(
@@ -205,6 +206,60 @@ def create_gravity_mapping(
     return list(zip(ordered_starts, ordered_ends))
 
 
+def generate_dsl(
+    config: Config,
+    pattern: PatternGrid,
+    frame_delay_ticks: int = 15,
+    verbose: bool = False,
+) -> str:
+    """Generates the DSL string, optionally formatted with comments."""
+    starts, ends, static = extract_coordinate_buckets(pattern)
+    pairs = create_gravity_mapping(starts, ends, config)
+
+    commands: list[Command] = []
+
+    if static or starts:
+        commands.append(Effect(AnimationEffect.BRIGHTEN_TO_MAX, 15))
+        for coord in static:
+            commands.append(SetLed(coord))
+        for coord in starts:
+            commands.append(SetLed(coord))
+
+    commands.append(Wait(frame_delay_ticks))
+    for start, end in pairs:
+        commands.append(Effect(AnimationEffect.DIM_TO_ZERO, 0))
+        commands.append(SetLed(start))
+
+        commands.append(Effect(AnimationEffect.BRIGHTEN_TO_MAX, 15))
+        commands.append(SetLed(end))
+
+        commands.append(Wait(frame_delay_ticks))
+
+    if not verbose:
+        # Standard mode: one continuous string
+        dsl_body = "".join(cmd.to_dsl() for cmd in commands)
+        return f'"{dsl_body}"\n'
+
+    # Verbose mode: multi-line quoted strings with C-style comments[cite: 7]
+    lines = []
+    for cmd in commands:
+        dsl_str = cmd.to_dsl()
+
+        if isinstance(cmd, Effect):
+            comment = f"Set {cmd.effect.name} brightness {cmd.brightness}"
+        elif isinstance(cmd, SetLed):
+            comment = f"Apply to LED at {cmd.coord}"
+        elif isinstance(cmd, Wait):
+            comment = f"Wait {cmd.ticks * 15}ms"
+        else:
+            comment = ""
+
+        # Pad the string to align the comments cleanly
+        lines.append(f'"{dsl_str}"{" " * (10 - len(dsl_str))} // {comment}')
+
+    return "\n".join(lines) + "\n"
+
+
 def parse_config_row(first_row: str) -> Config:
     """Parses the first row into a config.
 
@@ -243,6 +298,7 @@ def parse_config_row(first_row: str) -> Config:
     pattern: Literal["RANDOM", "LTR", "RTL"] = "RANDOM"
     direction: Literal["UP", "DOWN"] = "DOWN"
     seed = "NEW"
+    delay_ms = 2000  # default is two seconds
 
     # check that the coordinate is valid
     maybe_coord = items[0]
@@ -287,11 +343,25 @@ def parse_config_row(first_row: str) -> Config:
                             f"Expected 'NEW' or integer, got {seedval}"
                         ) from verr
 
+            case s if s.startswith("DELAY:"):
+                parts = s.split(":")
+                if len(parts) != 2:
+                    raise ValueError(f"Expected DELAY:NUM, got {s}")
+                try:
+                    delay_ms = int(parts[1])
+                except ValueError as verr:
+                    raise ValueError(
+                        f"Expected integer for delay, got {parts[1]}"
+                    ) from verr
             case _:
                 raise ValueError(f"Unknown option: {item}")
 
     return Config(
-        top_left=topleft, animation_pattern=pattern, direction=direction, seed=seed
+        top_left=topleft,
+        animation_pattern=pattern,
+        direction=direction,
+        seed=seed,
+        delay_ms=delay_ms,
     )
 
 
@@ -364,13 +434,26 @@ def main():
         description="Generate animation definition for Ledivilkutin from an input file."
     )
     parser.add_argument("filepath", type=Path, help="Path to the animation input file")
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Print DSL in multiline format with comments",
+    )
     args = parser.parse_args()
 
     try:
         config, pattern_grid = parse_input(args.filepath)
-        print(f"Successfully parsed {args.filepath}")
-        print(f"Config: {config}")
-        print(f"Grid: {len(pattern_grid.grid)}x{len(pattern_grid.grid[0])} parsed.")
+        delayticks = int(config.delay_ms / TIME_UNIT)
+        dsl_code = generate_dsl(config, pattern_grid, delayticks, args.verbose)
+        if not args.verbose:
+            print(f"// Successfully parsed {args.filepath}")
+            print(f"// Config: {config}")
+            print(
+                f"// Grid: {len(pattern_grid.grid)}x{len(pattern_grid.grid[0])} parsed.\n//Code:\n"
+            )
+        print(dsl_code, end="")
+        sys.exit(0)
 
         # Generator logic to output the C-header would go here
 

@@ -44,77 +44,49 @@ Configuration options are written after the top-right coordinate, separated by
 space. Following configuration options are supported, the option marked as
 default is assumed if no other option is given:
 
-- **random (default) | LTR | RTL :** the animation for each row. Random picks a
+- **RANDOM (default) | LTR | RTL :** the animation for each row. Random picks a
   random LED along the remaining ones. LTR empties each row left-to-right. RTL
   empties each row right-to-left
-- **down (default)| up :** direction of "gravity." if set to "up", the starting
+- **DOWN (default)| UP :** direction of "gravity." if set to "up", the starting
   position is emptied from lowest row to highest, and the final position is
   filled from the highest row to lowest.
 
-- **seed:NUM | seed:NEW (assumed) :** Sets the RNG seed used for random pattern.
+- **SEED:NUM | seed:NEW (assumed) :** Sets the RNG seed used for random pattern.
   If set to "NEW", a random pattern is generated each time.
+- **DELAY:NUM (default: 2000):** Sets the (approximate) wait time between each
+  animation frame in milliseconds. For example: `DELAY:500` applies a
+  half-second pause between each falling LED. This gets rounded down to 13ms
+  ticks. The 13ms delay is an approximation in DSL documentation, so all time
+  estimates in output/input are subject to inaccuracy.
 
 ### Pattern
 
-The pattern consists of rows of characters, where each row represents a row of
-LED's. LEDS of row are represented by `u`, `d`, `1` or `_`. There can be
-arbitary whitespace between these characters, either space or tabs. newline
-character separates the rows.
-
-Every row must have equal width. So, even if no such LED's exist on some row,
-they need to be "padded" in the pattern with `_`.
-
-Example: Suppose your ledivilkutin has the following pattern of SMD LEDS, where
-`_` represent an empty pad on the PCB, and `L` represents an SMD LED device:
-
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-_ _ _ _ _ _ _ L L L _ _ _ _ _ _
-_ _ _ _ _ _ _ _ L L _ _ _ _ _
-_ _ _ _ _ _ _ L L L L _ _ _ _
-
-The animation you want has a starting position (`L` represents a lit up LED):
-
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-_ _ _ _ _ _ _ L L L _ _ _ _ _
-_ _ _ _ _ _ _ _ L _ _ _ _ _ _
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-And an end position like this:
-
-
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-_ _ _ _ _ _ _ _ _ L _ _ _ _ _
-_ _ _ _ _ _ _ _ L L L _ _ _ _
-
-To represent it in the file, the middle row MUST include padding. However, we
-don't need to draw the whole. However, we DO need to include some padding.
-
-Counting the initial position, the left-most colum is 7. The highest LEDs are on
-row 1 (first row is row 0). So by setting the first coordinate to (1, 7), we can
-start drawing from the first L. We also only need to draw a pattern as wide as
-our rightmost LED we want to set on. To match this, our first row must be:
-
-
-u u u _ 
-
-We need the fourth column, else we can't draw the last row of our pattern. The
-full pattern we want is as follows:
-
-u u u _ 
-_ u d _
-_ d d d
-
-
-Similarly, the need for padding on the second and third row is illustrated. We
-without them, it would be ambigious. That some of these LEDs are not installed
-doesn't matter for the script we generate.
-
-
+- `u`**(Up / Start):** Lit during initialization. Falls down to an available `d`
+  position during animation sequence.
+- `d` **(Down / End):** Unlit during initialization. The final resting
+  destination for a falling `u` LED.
+- `1` **(Static On):** Lit during initialization and remains permanently on.
+  Unaffected by gravity.
+- `_` **(Empty / Static Off):** Unlit and ignored by the animation. **required
+  as padding to maintain equal row widths.**
 
 
 ## Animation
+This script generates a gravity-based transition from an initial pattern to a
+final pattern.
 
-This script only handles a very specific kind of animation: the initial pattern
-shifting from the initial pattern (`u`) to the final pattern (`d`). The letterns
-stand for up and down.
+### Initialization
+Before the animation begins, the script turns on all u and 1 LEDs
+to maximum brightness to display the full starting state (e.g., a full upper
+glass of an hourglass). A full frame delay is applied immediately after setup so
+the initial state is clearly visible.
+
+### The Gravity Effect
+The script moves exactly one LED per step. During each step,
+a single u LED dims to zero while its paired d LED brightens to maximum.
+
+### Timing
+The frame delay dictates the wait time between every single falling "grain." If
+a 2.0-second delay is configured, the initial pattern holds for 2.0 seconds, and
+then exactly one LED moves every 2.0 seconds until the u pattern has completely
+shifted into the d pattern.

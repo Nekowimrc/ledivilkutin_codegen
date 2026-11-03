@@ -1,0 +1,3 @@
+00 LTR DOWN SEED:NEW DELAY:1000
+u 1 _
+_ d _
