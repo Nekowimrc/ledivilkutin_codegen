@@ -1,0 +1,10 @@
+22 SEED:4 DELAY:3500
+
+u u u u u u u u u u u u u
+_ _ u u u u u u u u u _ _
+_ _ _ u u u u u u u _ _ _
+_ _ _ u u u u u _ _ _ _ _
+_ _ _ d d d d d d d _ _ _
+_ _ _ d d d d d _ _ _ _ _
+_ _ d d d d d d d d d _ _
+d d d d d d d d d d d d d

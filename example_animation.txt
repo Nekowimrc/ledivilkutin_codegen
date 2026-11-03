@@ -1,0 +1,206 @@
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s22"        // Apply to LED at (2,2)
+"s32"        // Apply to LED at (3,2)
+"s42"        // Apply to LED at (4,2)
+"s52"        // Apply to LED at (5,2)
+"s62"        // Apply to LED at (6,2)
+"s72"        // Apply to LED at (7,2)
+"s82"        // Apply to LED at (8,2)
+"s92"        // Apply to LED at (9,2)
+"sa2"        // Apply to LED at (10,2)
+"sb2"        // Apply to LED at (11,2)
+"sc2"        // Apply to LED at (12,2)
+"sd2"        // Apply to LED at (13,2)
+"se2"        // Apply to LED at (14,2)
+"s43"        // Apply to LED at (4,3)
+"s53"        // Apply to LED at (5,3)
+"s63"        // Apply to LED at (6,3)
+"s73"        // Apply to LED at (7,3)
+"s83"        // Apply to LED at (8,3)
+"s93"        // Apply to LED at (9,3)
+"sa3"        // Apply to LED at (10,3)
+"sb3"        // Apply to LED at (11,3)
+"sc3"        // Apply to LED at (12,3)
+"s54"        // Apply to LED at (5,4)
+"s64"        // Apply to LED at (6,4)
+"s74"        // Apply to LED at (7,4)
+"s84"        // Apply to LED at (8,4)
+"s94"        // Apply to LED at (9,4)
+"sa4"        // Apply to LED at (10,4)
+"sb4"        // Apply to LED at (11,4)
+"s55"        // Apply to LED at (5,5)
+"s65"        // Apply to LED at (6,5)
+"s75"        // Apply to LED at (7,5)
+"s85"        // Apply to LED at (8,5)
+"s95"        // Apply to LED at (9,5)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"sd2"        // Apply to LED at (13,2)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s69"        // Apply to LED at (6,9)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"sc2"        // Apply to LED at (12,2)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"sc9"        // Apply to LED at (12,9)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"sa2"        // Apply to LED at (10,2)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s29"        // Apply to LED at (2,9)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"se2"        // Apply to LED at (14,2)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s49"        // Apply to LED at (4,9)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s72"        // Apply to LED at (7,2)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s99"        // Apply to LED at (9,9)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"sb2"        // Apply to LED at (11,2)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"sd9"        // Apply to LED at (13,9)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s22"        // Apply to LED at (2,2)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"se9"        // Apply to LED at (14,9)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s42"        // Apply to LED at (4,2)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s59"        // Apply to LED at (5,9)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s92"        // Apply to LED at (9,2)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"sa9"        // Apply to LED at (10,9)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s82"        // Apply to LED at (8,2)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s89"        // Apply to LED at (8,9)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s32"        // Apply to LED at (3,2)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s79"        // Apply to LED at (7,9)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s62"        // Apply to LED at (6,2)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"sb9"        // Apply to LED at (11,9)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s52"        // Apply to LED at (5,2)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s39"        // Apply to LED at (3,9)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s53"        // Apply to LED at (5,3)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"sc8"        // Apply to LED at (12,8)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"sb3"        // Apply to LED at (11,3)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"sa8"        // Apply to LED at (10,8)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"sc3"        // Apply to LED at (12,3)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s78"        // Apply to LED at (7,8)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s93"        // Apply to LED at (9,3)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s58"        // Apply to LED at (5,8)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s63"        // Apply to LED at (6,3)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s68"        // Apply to LED at (6,8)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"sa3"        // Apply to LED at (10,3)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s98"        // Apply to LED at (9,8)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s83"        // Apply to LED at (8,3)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"sb8"        // Apply to LED at (11,8)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s73"        // Apply to LED at (7,3)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s88"        // Apply to LED at (8,8)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s43"        // Apply to LED at (4,3)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s48"        // Apply to LED at (4,8)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s84"        // Apply to LED at (8,4)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s57"        // Apply to LED at (5,7)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s94"        // Apply to LED at (9,4)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s87"        // Apply to LED at (8,7)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"sa4"        // Apply to LED at (10,4)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s67"        // Apply to LED at (6,7)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"sb4"        // Apply to LED at (11,4)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s77"        // Apply to LED at (7,7)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s54"        // Apply to LED at (5,4)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s97"        // Apply to LED at (9,7)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s64"        // Apply to LED at (6,4)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"sa6"        // Apply to LED at (10,6)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s74"        // Apply to LED at (7,4)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s86"        // Apply to LED at (8,6)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s55"        // Apply to LED at (5,5)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s56"        // Apply to LED at (5,6)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s85"        // Apply to LED at (8,5)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s96"        // Apply to LED at (9,6)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s95"        // Apply to LED at (9,5)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s76"        // Apply to LED at (7,6)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s75"        // Apply to LED at (7,5)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"sb6"        // Apply to LED at (11,6)
+"w00e9"      // Wait 3495ms
+"e10"        // Set DIM_TO_ZERO brightness 0
+"s65"        // Apply to LED at (6,5)
+"e3f"        // Set BRIGHTEN_TO_MAX brightness 15
+"s66"        // Apply to LED at (6,6)
+"w00e9"      // Wait 3495ms
