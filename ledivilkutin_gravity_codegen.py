@@ -159,7 +159,7 @@ def extract_coordinate_buckets(
 
 
 def sort_coordinates(
-    coords: List[Coordinate], config: Config, is_emptying: bool
+    coords: List[Coordinate], config: Config, is_emptying: bool, rng: random.Random
 ) -> List[Coordinate]:
     """Sorts coordinates based on direction and row-level animation patterns."""
 
@@ -175,12 +175,6 @@ def sort_coordinates(
     sorted_coords = sorted(coords, key=lambda c: c.y, reverse=reverse_y)
     final_order = []
 
-    # Initialize RNG once if a specific seed is defined[cite: 1]
-    rng = random.Random()
-    if config.seed != "NEW":
-        rng.seed(config.seed)
-
-    # Group by Y and apply horizontal sorting (LTR/RTL/RANDOM)[cite: 1]
     for _, group in groupby(sorted_coords, key=lambda c: c.y):
         row_coords = list(group)
 
@@ -200,8 +194,11 @@ def create_gravity_mapping(
     starts: List[Coordinate], ends: List[Coordinate], config: Config
 ) -> List[Tuple[Coordinate, Coordinate]]:
     """Applies sorting policies and pairs initial states with final states."""
-    ordered_starts = sort_coordinates(starts, config, is_emptying=True)
-    ordered_ends = sort_coordinates(ends, config, is_emptying=False)
+    rng = random.Random()
+    if config.seed != "NEW":
+        rng.seed(config.seed)
+    ordered_starts = sort_coordinates(starts, config, is_emptying=True, rng=rng)
+    ordered_ends = sort_coordinates(ends, config, is_emptying=False, rng=rng)
 
     return list(zip(ordered_starts, ordered_ends))
 
