@@ -62,6 +62,10 @@ To start the pattern from the actual top-left-most LED on the PCB, set this to
 `00`. Else, define a rectangle around the pattern you want, and use its top-left
 corners coordinates. To define second LED of third row as the corner, use `32`.
 
+Coordinates like `(x, y)` are now parsed as well. So second LED of third row can
+be alternatively specified as `(2, 3)`. These `(x,y)` coordinates are used in
+verbose comments.
+
 Configuration options are written after the top-right coordinate, separated by
 space. Following configuration options are supported, the option marked as
 default is assumed if no other option is given:
@@ -112,3 +116,13 @@ The frame delay dictates the wait time between every single falling "grain." If
 a 2.0-second delay is configured, the initial pattern holds for 2.0 seconds, and
 then exactly one LED moves every 2.0 seconds until the u pattern has completely
 shifted into the d pattern.
+
+## Verbose mode
+
+The default output is not human readable. using the verbose flag is recommended
+if there is need to read or explain the code. Each line is notated with a
+comment. Comments use an `(x,y)` coordinate system, where **x** refers to column
+index and **y** to row index. This is inconsistent with some documentation of the
+university course, where **y** refers to column and **x** to row.
+
+The generated code still uses the correct call-signature of the DSL commands.

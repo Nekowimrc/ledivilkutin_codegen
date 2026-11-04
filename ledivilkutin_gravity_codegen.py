@@ -14,7 +14,7 @@ from typing import (
     Tuple,
     assert_never,
 )
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum, StrEnum
 import argparse
 from pathlib import Path
@@ -124,6 +124,7 @@ class Config:
     direction: Optional[Literal["UP", "DOWN"]]
     seed: Optional[int | Literal["NEW"]]
     delay_ms: int
+    max_brightness: float = 1.0
 
 
 def extract_coordinate_buckets(
@@ -210,13 +211,14 @@ def generate_dsl(
     verbose: bool = False,
 ) -> str:
     """Generates the DSL string, optionally formatted with comments."""
+    active_brightness = int(round(15.0 * config.max_brightness))
     starts, ends, static = extract_coordinate_buckets(pattern)
     pairs = create_gravity_mapping(starts, ends, config)
 
     commands: list[Command] = []
 
     if static or starts:
-        commands.append(Effect(AnimationEffect.BRIGHTEN_TO_MAX, 15))
+        commands.append(Effect(AnimationEffect.BRIGHTEN_TO_MAX, active_brightness))
         for coord in static:
             commands.append(SetLed(coord))
         for coord in starts:
@@ -227,7 +229,7 @@ def generate_dsl(
         commands.append(Effect(AnimationEffect.DIM_TO_ZERO, 0))
         commands.append(SetLed(start))
 
-        commands.append(Effect(AnimationEffect.BRIGHTEN_TO_MAX, 15))
+        commands.append(Effect(AnimationEffect.BRIGHTEN_TO_MAX, active_brightness))
         commands.append(SetLed(end))
 
         commands.append(Wait(frame_delay_ticks))
@@ -257,28 +259,70 @@ def generate_dsl(
     return "\n".join(lines) + "\n"
 
 
+def parse_topleft_pair(string: str) -> Coordinate:
+    """Parse the top-left coordinate into Coordinate
+
+    >>> parse_topleft_pair("10")
+    Coordinate(x=0, y=1)
+    >>> parse_topleft_pair("(0, 1)")
+    Coordinate(x=0, y=1)
+
+    """
+    generic_value_error = ValueError(
+        "The top-left coordinate must be specified as first field, with hexpair 'YX' or as integer-tuple '(x,y)'"
+    )
+    if string.startswith("(") and string.endswith(")"):
+        # Handle (x, y)
+        parts = string[1:-1].split(",")  # '(foo bar, bar)' -> ["foo bar" " baz"]
+        if len(parts) != 2:
+            raise generic_value_error
+        try:
+            xval = int(parts[0].strip())
+            yval = int(parts[1].strip())
+            return Coordinate(xval, yval)
+
+        except ValueError as verr:
+            raise ValueError(
+                f"The top-left corner tuple must be like '(2,4)'. Got {string}"
+            ) from verr
+    elif not len(string) == 2:
+        raise generic_value_error
+    else:
+        xchar = string[1]
+        ychar = string[0]
+
+        try:
+            xval = int(xchar, base=16)
+            yval = int(ychar, base=16)
+            return Coordinate(xval, yval)
+        except ValueError as verr:
+            raise ValueError(
+                f"The top-left corner hex-values must be valid hex-characters. Got {string}"
+            ) from verr
+
+
 def parse_config_row(first_row: str) -> Config:
     """Parses the first row into a config.
 
 
     >>> parse_config_row("00")
-    Config(top_left=Coordinate(x=0, y=0), animation_pattern='RANDOM', direction='DOWN', seed='NEW', delay_ms=2000)
+    Config(top_left=Coordinate(x=0, y=0), animation_pattern='RANDOM', direction='DOWN', seed='NEW', delay_ms=2000, max_brightness=1.0)
 
     >>> parse_config_row("1f LTR UP SEED:42")
-    Config(top_left=Coordinate(x=15, y=1), animation_pattern='LTR', direction='UP', seed=42, delay_ms=2000)
+    Config(top_left=Coordinate(x=15, y=1), animation_pattern='LTR', direction='UP', seed=42, delay_ms=2000, max_brightness=1.0)
 
     >>> parse_config_row("a3 UP SEED:NEW RTL")
-    Config(top_left=Coordinate(x=3, y=10), animation_pattern='RTL', direction='UP', seed='NEW', delay_ms=2000)
+    Config(top_left=Coordinate(x=3, y=10), animation_pattern='RTL', direction='UP', seed='NEW', delay_ms=2000, max_brightness=1.0)
 
     >>> parse_config_row("1")
     Traceback (most recent call last):
         ...
-    ValueError: the top-left coordinate must be specified as first field, with two characters
+    ValueError: The top-left coordinate must be specified as first field, with hexpair 'YX' or as integer-tuple '(x,y)'
 
     >>> parse_config_row("gh")
     Traceback (most recent call last):
         ...
-    ValueError: The top-left corner must be defined with valid hex-characters. Got gh
+    ValueError: The top-left corner hex-values must be valid hex-characters. Got gh
 
     >>> parse_config_row("00 SEED:hello")
     Traceback (most recent call last):
@@ -294,28 +338,15 @@ def parse_config_row(first_row: str) -> Config:
     topleft: Coordinate
     pattern: Literal["RANDOM", "LTR", "RTL"] = "RANDOM"
     direction: Literal["UP", "DOWN"] = "DOWN"
+    max_brightness: float = 1.0
     seed = "NEW"
     delay_ms = 2000  # default is two seconds
 
     # check that the coordinate is valid
     maybe_coord = items[0]
-    if not len(maybe_coord) == 2:
-        raise ValueError(
-            "the top-left coordinate must be specified as first field, with two characters"
-        )
-    xchar = maybe_coord[0]
-    ychar = maybe_coord[1]
+    topleft = parse_topleft_pair(maybe_coord)
 
-    try:
-        yval = int(xchar, base=16)
-        xval = int(ychar, base=16)
-        topleft = Coordinate(xval, yval)
-    except ValueError as verr:
-        raise ValueError(
-            f"The top-left corner must be defined with valid hex-characters. Got {maybe_coord}"
-        ) from verr
-
-        # Loop over the others
+    # Loop over the others
     for item in items[1:]:
         match item.upper():
             case "RANDOM" | "LTR" | "RTL" as p:
@@ -350,6 +381,19 @@ def parse_config_row(first_row: str) -> Config:
                     raise ValueError(
                         f"Expected integer for delay, got {parts[1]}"
                     ) from verr
+            case s if s.startswith("BRIGHTNESS"):
+                parts = s.split(":")
+                if len(parts) != 2:
+                    raise ValueError(f"Expected BRIGHTNESS:FLOAT, got {s}")
+                try:
+                    max_brightness = parse_brightness_float(parts[1])
+                except ValueError as verr:
+                    raise ValueError(f"Expected float for brightness, got {parts[1]}")
+                if not 0.0 <= max_brightness <= 1.0:
+                    raise ValueError(
+                        f"Brightness must be between 0.0 and 1.0. got {max_brightness}"
+                    )
+
             case _:
                 raise ValueError(f"Unknown option: {item}")
 
@@ -359,6 +403,7 @@ def parse_config_row(first_row: str) -> Config:
         direction=direction,
         seed=seed,
         delay_ms=delay_ms,
+        max_brightness=max_brightness,
     )
 
 
@@ -426,6 +471,30 @@ def parse_input(filepath: Path | str) -> Tuple[Config, PatternGrid]:
     return config, PatternGrid(top_left=config.top_left, grid=grid)
 
 
+def parser_seed_arg(val: str) -> int | Literal["NEW"]:
+    if val.upper() == "NEW":
+        return "NEW"
+    try:
+        return int(val)
+    except ValueError as verr:
+        raise argparse.ArgumentTypeError(
+            f"Expected 'NEW' or integer for seed, got '{val}'"
+        ) from verr
+
+
+def parse_brightness_float(val: str) -> float:
+    MIN = 0.067
+    try:
+        f = float(val)
+    except ValueError as verr:
+        raise argparse.ArgumentTypeError(f"'{val}' is not a valid float.") from verr
+    if not MIN <= f <= 1.0:
+        raise argparse.ArgumentTypeError(
+            f"brightness {f} must be between 0.0 and {MIN}"
+        )
+    return f
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Generate animation definition for Ledivilkutin from an input file."
@@ -437,10 +506,44 @@ def main():
         action="store_true",
         help="Print DSL in multiline format with comments",
     )
+    parser.add_argument(
+        "-b",
+        "--brightness",
+        type=parse_brightness_float,
+        default=None,
+        help="Maximum brightness muliplier from 0.0 to 1.0 (default 1.0)",
+    )
+    parser.add_argument(
+        "-s",
+        "--seed",
+        type=parser_seed_arg,
+        default=None,
+        help="Override RNG seed (integer or 'NEW')",
+    )
+    parser.add_argument(
+        "-d",
+        "--delay",
+        type=int,
+        default=None,
+        help="Override frame delay in milliseconds (e.g., 2000)",
+    )
     args = parser.parse_args()
 
     try:
+        # Parse the first line into config, rest of the lines into pattern
         config, pattern_grid = parse_input(args.filepath)
+
+        # If command-line flags were used, they override the files config
+        if args.brightness is not None:
+            config = replace(config, max_brightness=args.brightness)
+        if args.delay is not None:
+            config = replace(config, delay_ms=args.delay)
+        if args.seed is not None:
+            config = replace(config, delay_ms=args.seed)
+
+        # calculate the delay in ticks
+        # TODO: this is here but similar logic for brightness
+        #       is inside generate_dsl. Should do both in the same place I guess
         delayticks = int(config.delay_ms / TIME_UNIT)
         dsl_code = generate_dsl(config, pattern_grid, delayticks, args.verbose)
         if not args.verbose:
@@ -451,8 +554,6 @@ def main():
             )
         print(dsl_code, end="")
         sys.exit(0)
-
-        # Generator logic to output the C-header would go here
 
     except FileNotFoundError:
         print(f"Error: File not found at '{args.filepath}'", file=sys.stderr)

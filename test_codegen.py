@@ -38,7 +38,7 @@ def test_parse_config_row_options():
 
 
 def test_parse_config_row_invalid_coord_length():
-    with pytest.raises(ValueError, match="two characters"):
+    with pytest.raises(ValueError, match="hexpair"):
         parse_config_row("1")
 
 
