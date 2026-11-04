@@ -79,7 +79,7 @@ class SetLed(Command):
     coord: Coordinate
 
     def to_dsl(self) -> str:
-        return f"s{self.coord.x:x}{self.coord.y:x}"
+        return f"s{self.coord.y:x}{self.coord.x:x}"
 
 
 @dataclass(frozen=True)
@@ -262,13 +262,13 @@ def parse_config_row(first_row: str) -> Config:
 
 
     >>> parse_config_row("00")
-    Config(top_left=Coordinate(x=0, y=0), animation_pattern='RANDOM', direction='DOWN', seed='NEW')
+    Config(top_left=Coordinate(x=0, y=0), animation_pattern='RANDOM', direction='DOWN', seed='NEW', delay_ms=2000)
 
     >>> parse_config_row("1f LTR UP SEED:42")
-    Config(top_left=Coordinate(x=1, y=15), animation_pattern='LTR', direction='UP', seed=42)
+    Config(top_left=Coordinate(x=15, y=1), animation_pattern='LTR', direction='UP', seed=42, delay_ms=2000)
 
     >>> parse_config_row("a3 UP SEED:NEW RTL")
-    Config(top_left=Coordinate(x=10, y=3), animation_pattern='RTL', direction='UP', seed='NEW')
+    Config(top_left=Coordinate(x=3, y=10), animation_pattern='RTL', direction='UP', seed='NEW', delay_ms=2000)
 
     >>> parse_config_row("1")
     Traceback (most recent call last):
@@ -307,8 +307,8 @@ def parse_config_row(first_row: str) -> Config:
     ychar = maybe_coord[1]
 
     try:
-        xval = int(xchar, base=16)
-        yval = int(ychar, base=16)
+        yval = int(xchar, base=16)
+        xval = int(ychar, base=16)
         topleft = Coordinate(xval, yval)
     except ValueError as verr:
         raise ValueError(

@@ -1,6 +1,28 @@
 # Animation Code generator for ledivilkutin DSL
 
 Generate valid DSL for ledivilkutin based on an input file
+## Usage
+
+Generate the code as a single string:
+
+``` shell
+ledivilkutin_gravity_codegen.py <pattern-file>
+```
+
+Generate commented code:
+``` shell
+ledivilkutin_gravity_codegen.py -v <pattern-file>
+```
+
+See help (for possible undocumented flags):
+
+``` shell
+ledivilkutin_gravity_codegen.py -h
+```
+
+Pattern file defines the initial and final position of LEDs. The example
+file [[file:example_pattern.txt]] shows the valid pattern.
+
 ## Input file specification
 
 Input file specifies the animations coordinates, initial state and end-state.
@@ -13,7 +35,7 @@ their initial pattern to positions defined by the final pattern.
   pattern
   *This simplifies the animating process*
 
-- the specified top-left coordinate `(N,M)` fullfills:
+- the specified top-left coordinate `NM` fullfills:
    + **N:** in range 0-f
    + **M:** in range 0-f
   *The coordinates are used for building the indexes of LEDs*
@@ -38,7 +60,7 @@ defined. This is done with two characters, in 0-f.
 
 To start the pattern from the actual top-left-most LED on the PCB, set this to
 `00`. Else, define a rectangle around the pattern you want, and use its top-left
-corners coordinates
+corners coordinates. To define second LED of third row as the corner, use `32`.
 
 Configuration options are written after the top-right coordinate, separated by
 space. Following configuration options are supported, the option marked as

@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 import pytest
+import random
 from ledivilkutin_gravity_codegen import (
     Coordinate,
     Config,
     LedState,
+    SetLed,
     PatternGrid,
     parse_config_row,
     parse_led_row,
@@ -12,6 +14,11 @@ from ledivilkutin_gravity_codegen import (
     extract_coordinate_buckets,
     sort_coordinates,
 )
+
+
+def test_set_led_yx_order():
+    """Check that generated code now follows the yx notation"""
+    assert SetLed(Coordinate(x=5, y=0)).to_dsl() == "s05"
 
 
 def test_parse_config_row_defaults():
@@ -24,7 +31,7 @@ def test_parse_config_row_defaults():
 
 def test_parse_config_row_options():
     config = parse_config_row("1f LTR UP SEED:42")
-    assert config.top_left == Coordinate(1, 15)
+    assert config.top_left == Coordinate(15, 1)
     assert config.animation_pattern == "LTR"
     assert config.direction == "UP"
     assert config.seed == 42
@@ -89,10 +96,11 @@ def test_extract_coordinate_buckets_mismatch():
 
 def test_sort_coordinates_ltr_down():
     coords = [Coordinate(2, 1), Coordinate(0, 1), Coordinate(1, 0), Coordinate(0, 0)]
-    config = Config(Coordinate(0, 0), "LTR", "DOWN", "NEW")
-
+    config = Config(Coordinate(0, 0), "LTR", "DOWN", "NEW", delay_ms=2000)
+    rng = random.Random()
+    rng.seed(4)
     # Emptying (reverse Y = False for DOWN) -> Top to bottom, LTR
-    emptying_sorted = sort_coordinates(coords, config, is_emptying=True)
+    emptying_sorted = sort_coordinates(coords, config, is_emptying=True, rng=rng)
     assert emptying_sorted == [
         Coordinate(0, 0),
         Coordinate(1, 0),
@@ -101,7 +109,7 @@ def test_sort_coordinates_ltr_down():
     ]
 
     # Filling (reverse Y = True for DOWN) -> Bottom to top, LTR
-    filling_sorted = sort_coordinates(coords, config, is_emptying=False)
+    filling_sorted = sort_coordinates(coords, config, is_emptying=False, rng=rng)
     assert filling_sorted == [
         Coordinate(0, 1),
         Coordinate(2, 1),
@@ -112,10 +120,12 @@ def test_sort_coordinates_ltr_down():
 
 def test_sort_coordinates_rtl_up():
     coords = [Coordinate(2, 1), Coordinate(0, 1), Coordinate(1, 0), Coordinate(0, 0)]
-    config = Config(Coordinate(0, 0), "RTL", "UP", "NEW")
+    config = Config(Coordinate(0, 0), "RTL", "UP", "NEW", delay_ms=2000)
+    rng = random.Random()
+    rng.seed(4)
 
     # Emptying (reverse Y = True for UP) -> Bottom to top, RTL
-    emptying_sorted = sort_coordinates(coords, config, is_emptying=True)
+    emptying_sorted = sort_coordinates(coords, config, is_emptying=True, rng=rng)
     assert emptying_sorted == [
         Coordinate(2, 1),
         Coordinate(0, 1),
