@@ -151,7 +151,6 @@ def extract_coordinate_buckets(
                 case _:
                     assert_never(state)
 
-    # Validate that the number of active LEDs remains constant[cite: 1]
     if len(starts) != len(ends):
         raise ValueError(
             f"LED count mismatch: {len(starts)} initial vs {len(ends)} final."
@@ -166,7 +165,7 @@ def sort_coordinates(
     """Sorts coordinates based on direction and row-level animation patterns."""
 
     # If UP: starting position is emptied from lowest row to highest (max Y to min Y)
-    # and final position is filled from highest row to lowest (min Y to max Y)[cite: 1].
+    # and final position is filled from highest row to lowest (min Y to max Y)
     # If DOWN: the inverse applies.
     if config.direction == "UP":
         reverse_y = True if is_emptying else False
@@ -208,10 +207,13 @@ def create_gravity_mapping(
 def generate_dsl(
     config: Config,
     pattern: PatternGrid,
-    frame_delay_ticks: int = 15,
     verbose: bool = False,
 ) -> str:
     """Generates the DSL string, optionally formatted with comments."""
+
+    # from values in config:
+    # calculate ticks for wait and the hex for brightness
+    frame_delay_ticks = int(config.delay_ms / TIME_UNIT)
     active_brightness = int(round(15.0 * config.max_brightness))
     starts, ends, static = extract_coordinate_buckets(pattern)
     pairs = create_gravity_mapping(starts, ends, config)
@@ -240,11 +242,11 @@ def generate_dsl(
         dsl_body = "".join(cmd.to_dsl() for cmd in commands)
         return f'"{dsl_body}"\n'
 
-    # Verbose mode: multi-line quoted strings with C-style comments[cite: 7]
     lines = []
     for cmd in commands:
         dsl_str = cmd.to_dsl()
 
+        # write comment for each line
         if isinstance(cmd, Effect):
             comment = f"Set {cmd.effect.name} brightness {cmd.brightness}"
         elif isinstance(cmd, SetLed):
@@ -451,17 +453,15 @@ def parse_input(
     if not lines:
         raise ValueError(f"Input file '{filepath}' is empty.")
 
-    # Configuration is always the first row[cite: 1]
     config = parse_config_row(lines[0])
 
     grid: list[list[LedState]] = []
     expected_width = -1
     allow_unpadded_patterns = allow_unpadded or config.allow_unpadded_patterns
 
-    # Pattern starts from the first non-empty row below the first[cite: 1]
     for line in lines[1:]:
         if not line.strip() or line.strip().startswith("%"):
-            continue  # Skip empty rows
+            continue  # Skip empty rows and comments
 
         row_states = parse_led_row(line)
         if not row_states:
@@ -470,7 +470,8 @@ def parse_input(
         if expected_width == -1:
             expected_width = len(row_states)
         elif len(row_states) != expected_width:
-            # Enforce the requirement that every row has equal width[cite: 1]
+            # Allow uneven rows if specified. This assumes that what is left out
+            # is the right-hand side, and is all empty.
             if not allow_unpadded_patterns:
                 raise ValueError(
                     f"Row width mismatch: expected {expected_width} columns, got {len(row_states)}."
@@ -550,6 +551,13 @@ def main():
         action="store_true",
         help="Only require right-side padding on the first line of pattern",
     )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        default=None,
+        help="Save the generated DSL code to <PATH> (instead of printing in c,onsole)",
+    )
     args = parser.parse_args()
 
     try:
@@ -564,18 +572,24 @@ def main():
         if args.seed is not None:
             config = replace(config, seed=args.seed)
 
-        # calculate the delay in ticks
-        # TODO: this is here but similar logic for brightness
-        #       is inside generate_dsl. Should do both in the same place I guess
-        delayticks = int(config.delay_ms / TIME_UNIT)
-        dsl_code = generate_dsl(config, pattern_grid, delayticks, args.verbose)
+        dsl_code = generate_dsl(config, pattern_grid, args.verbose)
+
         if not args.verbose:
             print(f"// Successfully parsed {args.filepath}")
-            print(f"// Config: {config}")
+            print("// Config:")
+            print(f"//  {config.top_left=}; {config.animation_pattern=}")
+            print(f"//  {config.direction=}; {config.seed=}")
+            print(f"//  {config.delay_ms=}; {config.max_brightness=}")
+            print(f"//  {config.allow_unpadded_patterns=}")
             print(
                 f"// Grid: {len(pattern_grid.grid)}x{len(pattern_grid.grid[0])} parsed.\n//Code:\n"
             )
-        print(dsl_code, end="")
+        if args.output:
+            args.output.write_text(dsl_code, encoding="utf-8")
+            print(f"// Successfully saved generated code to {args.output}.")
+        else:
+            print(dsl_code, end="")
+
         sys.exit(0)
 
     except FileNotFoundError:
