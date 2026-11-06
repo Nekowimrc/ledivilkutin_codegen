@@ -125,6 +125,7 @@ class Config:
     seed: Optional[int | Literal["NEW"]]
     delay_ms: int
     max_brightness: float = 1.0
+    allow_unpadded_patterns: bool = False
 
 
 def extract_coordinate_buckets(
@@ -306,13 +307,13 @@ def parse_config_row(first_row: str) -> Config:
 
 
     >>> parse_config_row("00")
-    Config(top_left=Coordinate(x=0, y=0), animation_pattern='RANDOM', direction='DOWN', seed='NEW', delay_ms=2000, max_brightness=1.0)
+    Config(top_left=Coordinate(x=0, y=0), animation_pattern='RANDOM', direction='DOWN', seed='NEW', delay_ms=2000, max_brightness=1.0, allow_unpadded_patterns=False)
 
     >>> parse_config_row("1f LTR UP SEED:42")
-    Config(top_left=Coordinate(x=15, y=1), animation_pattern='LTR', direction='UP', seed=42, delay_ms=2000, max_brightness=1.0)
+    Config(top_left=Coordinate(x=15, y=1), animation_pattern='LTR', direction='UP', seed=42, delay_ms=2000, max_brightness=1.0, allow_unpadded_patterns=False)
 
     >>> parse_config_row("a3 UP SEED:NEW RTL")
-    Config(top_left=Coordinate(x=3, y=10), animation_pattern='RTL', direction='UP', seed='NEW', delay_ms=2000, max_brightness=1.0)
+    Config(top_left=Coordinate(x=3, y=10), animation_pattern='RTL', direction='UP', seed='NEW', delay_ms=2000, max_brightness=1.0, allow_unpadded_patterns=False)
 
     >>> parse_config_row("1")
     Traceback (most recent call last):
@@ -341,6 +342,7 @@ def parse_config_row(first_row: str) -> Config:
     max_brightness: float = 1.0
     seed = "NEW"
     delay_ms = 2000  # default is two seconds
+    allow_unpadded: bool = False
 
     # check that the coordinate is valid
     maybe_coord = items[0]
@@ -353,6 +355,8 @@ def parse_config_row(first_row: str) -> Config:
                 pattern = p
             case "UP" | "DOWN" as d:
                 direction = d
+            case "ALLOW_UNPADDED_PATTERNS":
+                allow_unpadded = True
             case s if s.startswith("SEED:"):
                 parts = item.split(":")
                 if len(parts) != 2:
@@ -404,6 +408,7 @@ def parse_config_row(first_row: str) -> Config:
         seed=seed,
         delay_ms=delay_ms,
         max_brightness=max_brightness,
+        allow_unpadded_patterns=allow_unpadded,
     )
 
 
@@ -416,6 +421,8 @@ def parse_led_row(row: str) -> LedRow:
     [<LedState.EMPTY: '_'>, <LedState.EMPTY: '_'>, <LedState.DOWN: 'd'>]
     >>> parse_led_row("_ _ 1")
     [<LedState.EMPTY: '_'>, <LedState.EMPTY: '_'>, <LedState.STATIC_ON: '1'>]
+    >>> parse_led_row("_ _ 1 % comment")
+    [<LedState.EMPTY: '_'>, <LedState.EMPTY: '_'>, <LedState.STATIC_ON: '1'>]
     """
 
     states: list[LedState] = []
@@ -423,6 +430,8 @@ def parse_led_row(row: str) -> LedRow:
     for char in row:
         if char.isspace():
             continue
+        if char == "%":
+            break
         try:
             states.append(LedState(char.lower()))
         except ValueError:
@@ -432,7 +441,9 @@ def parse_led_row(row: str) -> LedRow:
     return states
 
 
-def parse_input(filepath: Path | str) -> Tuple[Config, PatternGrid]:
+def parse_input(
+    filepath: Path | str, allow_unpadded: bool = False
+) -> Tuple[Config, PatternGrid]:
     """Reads the input file and returns the parsed Config and PatternGrid."""
     with open(filepath, "r", encoding="utf-8") as f:
         lines = f.readlines()
@@ -445,10 +456,11 @@ def parse_input(filepath: Path | str) -> Tuple[Config, PatternGrid]:
 
     grid: list[list[LedState]] = []
     expected_width = -1
+    allow_unpadded_patterns = allow_unpadded or config.allow_unpadded_patterns
 
     # Pattern starts from the first non-empty row below the first[cite: 1]
     for line in lines[1:]:
-        if not line.strip():
+        if not line.strip() or line.strip().startswith("%"):
             continue  # Skip empty rows
 
         row_states = parse_led_row(line)
@@ -459,9 +471,14 @@ def parse_input(filepath: Path | str) -> Tuple[Config, PatternGrid]:
             expected_width = len(row_states)
         elif len(row_states) != expected_width:
             # Enforce the requirement that every row has equal width[cite: 1]
-            raise ValueError(
-                f"Row width mismatch: expected {expected_width} columns, got {len(row_states)}."
-            )
+            if not allow_unpadded_patterns:
+                raise ValueError(
+                    f"Row width mismatch: expected {expected_width} columns, got {len(row_states)}."
+                )
+            else:
+                padding_to_add: int = expected_width - len(row_states)
+                padding = [LedState.EMPTY for _ in range(padding_to_add)]
+                row_states.extend(padding)
 
         grid.append(row_states)
 
@@ -527,11 +544,17 @@ def main():
         default=None,
         help="Override frame delay in milliseconds (e.g., 2000)",
     )
+    parser.add_argument(
+        "-p",
+        "--allow-unpadded-lines",
+        action="store_true",
+        help="Only require right-side padding on the first line of pattern",
+    )
     args = parser.parse_args()
 
     try:
         # Parse the first line into config, rest of the lines into pattern
-        config, pattern_grid = parse_input(args.filepath)
+        config, pattern_grid = parse_input(args.filepath, args.allow_unpadded_lines)
 
         # If command-line flags were used, they override the files config
         if args.brightness is not None:
@@ -539,7 +562,7 @@ def main():
         if args.delay is not None:
             config = replace(config, delay_ms=args.delay)
         if args.seed is not None:
-            config = replace(config, delay_ms=args.seed)
+            config = replace(config, seed=args.seed)
 
         # calculate the delay in ticks
         # TODO: this is here but similar logic for brightness

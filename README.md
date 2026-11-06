@@ -23,6 +23,14 @@ ledivilkutin_gravity_codegen.py -h
 Pattern file defines the initial and final position of LEDs. The example
 file [[file:example_pattern.txt]] shows the valid pattern.
 
+### New features
+
+- leaving out padding with `_` on the right-hand-side of lines other than the
+  first line of pattern can be now allowed: use `ALLOW_UNPADDED_PATTERNS` on the
+  config row or command-flag `--allow-unpadded_lines`
+- Comments are now supported at the end of each line of pattern,
+or on empty lines. Use `%` to start a comment.
+
 ## Input file specification
 
 Input file specifies the animations coordinates, initial state and end-state.
@@ -81,7 +89,7 @@ default is assumed if no other option is given:
   If set to "NEW", a random pattern is generated each time.
 - **DELAY:NUM (default: 2000):** Sets the (approximate) wait time between each
   animation frame in milliseconds. For example: `DELAY:500` applies a
-  half-second pause between each falling LED. This gets rounded down to 13ms
+  half-second pause between each falling LED. This gets rounded down to 15ms
   ticks. The 13ms delay is an approximation in DSL documentation, so all time
   estimates in output/input are subject to inaccuracy.
 

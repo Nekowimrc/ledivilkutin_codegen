@@ -1,0 +1,19 @@
+00 LTR
+
+% This is a comment
+u_______________
+_ % comments can be added on lines as well
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_______________d
